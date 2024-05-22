@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from telethon import TelegramClient
+from concurrent.futures import ThreadPoolExecutor
 
 load_dotenv()
 
@@ -16,6 +17,19 @@ loop = client.loop
 app = Flask(__name__)
 CORS(app)
 
+# Create a thread pool executor for running async tasks
+executor = ThreadPoolExecutor(max_workers=1)
+
+
+async def send_telegram_message(message):
+    await client.connect()
+    await client.send_message('me', message)
+    await client.disconnect()
+
+
+def send_telegram_message_sync(message):
+    loop.run_until_complete(send_telegram_message(message))
+
 
 @app.route("/")
 def hello_world():
@@ -23,16 +37,16 @@ def hello_world():
 
 
 @app.route('/submit', methods=['POST'])
-async def submit():
+def submit():
     print('Got a form!')
     data = request.form.to_dict()
     message = "\n".join([f"{key}: {value}" for key, value in data.items()])
 
-    await client.connect()
-    await client.send_message('me', message)
+    # Run the async function in a separate thread
+    executor.submit(send_telegram_message_sync, message)
 
     return jsonify(message='FormData received successfully')
 
 
 if __name__ == '__main__':
-    loop.run_until_complete(app.run(host='0.0.0.0', port=port))
+    app.run(host='0.0.0.0', port=port)
