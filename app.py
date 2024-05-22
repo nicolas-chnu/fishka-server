@@ -17,6 +17,15 @@ loop = client.loop
 app = Flask(__name__)
 CORS(app)
 
+
+# Set Content Security Policy (CSP) headers
+@app.after_request
+def add_security_headers(response):
+    response.headers['Content-Security-Policy'] = ("default-src 'self'; connect-src 'self' "
+                                                   "https://fishka-server.onrender.com:5000")
+    return response
+
+
 # Create a thread pool executor for running async tasks
 executor = ThreadPoolExecutor(max_workers=1)
 
