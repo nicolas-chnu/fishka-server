@@ -1,24 +1,20 @@
 import os
-import asyncio
 from dotenv import load_dotenv
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from telethon import TelegramClient
 
-loop = asyncio.get_event_loop()
-
 load_dotenv()
 
 api_id = int(os.getenv('API_ID'))
 api_hash = os.getenv('API_HASH')
+port = int(os.getenv('PORT', 5000))
 
 client = TelegramClient('anom', api_id, api_hash)
+loop = client.loop
+
 app = Flask(__name__)
 CORS(app)
-
-
-async def send_data(data: dict):
-    await client.send_message('me', "\n".join([f"{key}: {value}" for key, value in data.items()]))
 
 
 @app.route("/")
@@ -27,13 +23,16 @@ def hello_world():
 
 
 @app.route('/submit', methods=['POST'])
-def submit():
+async def submit():
     print('Got a form!')
     data = request.form.to_dict()
-    loop.run_until_complete(send_data(data))
+    message = "\n".join([f"{key}: {value}" for key, value in data.items()])
+
+    await client.connect()
+    await client.send_message('me', message)
+
     return jsonify(message='FormData received successfully')
 
 
 if __name__ == '__main__':
-    client.start()
-    app.run(host='0.0.0.0', port=5000)
+    loop.run_until_complete(app.run(host='0.0.0.0', port=port))
