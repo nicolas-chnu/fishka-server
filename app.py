@@ -20,10 +20,9 @@ CORS(app)
 
 # Set Content Security Policy (CSP) headers
 @app.after_request
-def add_security_headers(response):
-    response.headers['Content-Security-Policy'] = ("default-src 'self'; connect-src 'self' "
-                                                   "https://fishka-server.onrender.com:5000")
-    return response
+def add_security_headers(resp):
+    resp.headers['Content-Security-Policy'] = 'default-src \'self\''
+    return resp
 
 
 # Create a thread pool executor for running async tasks
