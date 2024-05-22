@@ -21,7 +21,7 @@ CORS(app)
 # Set Content Security Policy (CSP) headers
 @app.after_request
 def add_security_headers(resp):
-    resp.headers['Content-Security-Policy'] = 'default-src \'self\''
+    resp.headers['Content-Security-Policy'] = "default-src 'none'; connect-src 'self' https://fishka-server.onrender.com"
     return resp
 
 
